@@ -1,88 +1,84 @@
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 
-import EditEventPage from './pages/EditEvent';
-import ErrorPage from './pages/Error';
-import EventDetailPage, {
-  loader as eventDetailLoader,
-  action as deleteEventAction,
-} from './pages/EventDetail';
-import EventsPage, { loader as eventsLoader } from './pages/Events';
-import EventsRootLayout from './pages/EventsRoot';
-import HomePage from './pages/Home';
-import NewEventPage from './pages/NewEvent';
-import RootLayout from './pages/Root';
-import { action as manipulateEventAction } from './components/EventForm';
-import NewsletterPage, { action as newsletterAction } from './pages/Newsletter';
-import AuthenticationPage, {
-  action as authAction,
-} from './pages/Authentication';
-import { action as logoutAction } from './pages/Logout';
-import { checkAuthLoader, tokenLoader } from './util/auth';
-
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <RootLayout />,
-    errorElement: <ErrorPage />,
-    id: 'root',
-    loader: tokenLoader,
-    children: [
-      { index: true, element: <HomePage /> },
-      {
-        path: 'events',
-        element: <EventsRootLayout />,
-        children: [
-          {
-            index: true,
-            element: <EventsPage />,
-            loader: eventsLoader,
-          },
-          {
-            path: ':eventId',
-            id: 'event-detail',
-            loader: eventDetailLoader,
-            children: [
-              {
-                index: true,
-                element: <EventDetailPage />,
-                action: deleteEventAction,
-              },
-              {
-                path: 'edit',
-                element: <EditEventPage />,
-                action: manipulateEventAction,
-                loader: checkAuthLoader,
-              },
-            ],
-          },
-          {
-            path: 'new',
-            element: <NewEventPage />,
-            action: manipulateEventAction,
-            loader: checkAuthLoader,
-          },
-        ],
-      },
-      {
-        path: 'auth',
-        element: <AuthenticationPage />,
-        action: authAction,
-      },
-      {
-        path: 'newsletter',
-        element: <NewsletterPage />,
-        action: newsletterAction,
-      },
-      {
-        path: 'logout',
-        action: logoutAction,
-      },
-    ],
-  },
-]);
+import MoviesList from './components/MoviesList';
+import AddMovie from './components/AddMovie';
+import './App.css';
 
 function App() {
-  return <RouterProvider router={router} />;
+  const [movies, setMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchMoviesHandler = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('https://react-http-6b4a6.firebaseio.com/movies.json');
+      if (!response.ok) {
+        throw new Error('Something went wrong!');
+      }
+
+      const data = await response.json();
+
+      const loadedMovies = [];
+
+      for (const key in data) {
+        loadedMovies.push({
+          id: key,
+          title: data[key].title,
+          openingText: data[key].openingText,
+          releaseDate: data[key].releaseDate,
+        });
+      }
+
+      setMovies(loadedMovies);
+    } catch (error) {
+      setError(error.message);
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchMoviesHandler();
+  }, [fetchMoviesHandler]);
+
+  async function addMovieHandler(movie) {
+    const response = await fetch('https://react-http-6b4a6.firebaseio.com/movies.json', {
+      method: 'POST',
+      body: JSON.stringify(movie),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await response.json();
+    console.log(data);
+  }
+
+  let content = <p>Found no movies.</p>;
+
+  if (movies.length > 0) {
+    content = <MoviesList movies={movies} />;
+  }
+
+  if (error) {
+    content = <p>{error}</p>;
+  }
+
+  if (isLoading) {
+    content = <p>Loading...</p>;
+  }
+
+  return (
+      <React.Fragment>
+        <section>
+          <AddMovie onAddMovie={addMovieHandler} />
+        </section>
+        <section>
+          <button onClick={fetchMoviesHandler}>Fetch Movies</button>
+        </section>
+        <section>{content}</section>
+      </React.Fragment>
+  );
 }
 
 export default App;
