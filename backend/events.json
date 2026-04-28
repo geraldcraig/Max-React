@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "title": "FA Cup Final 2026",
+      "image": "https://www.wembleystadium.com/-/media/Project/WembleyStadium/events/emirates-fa-cup-final/Trtrophy-1400-2026.ashx",
+      "date": "2026-05-16",
+      "description": "Chelsea and Manchester City will face each other in the FA Cup Final 2026. Don't miss this exciting match!",
+      "id": "e55ca0b6-5272-4364-b88d-71151b6a4028"
+    },
+    {
+      "id": "e1",
+      "title": "A dummy event",
+      "date": "2023-02-22",
+      "image": "https://blog.hubspot.de/hubfs/Germany/Blog_images/Optimize_Marketing%20Events%20DACH%202021.jpg",
+      "description": "Join this amazing event and connect with fellow developers."
+    }
+  ]
+}
